@@ -1,0 +1,59 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: xifty-python-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ${{ github.workspace }}/XIFtyPython
+    env:
+      PYTHONPATH: src
+      XIFTY_CORE_DIR: ${{ github.workspace }}/XIFty
+    steps:
+      - name: Check out binding repo
+        uses: actions/checkout@v4
+        with:
+          path: XIFtyPython
+
+      - name: Check out core repo
+        uses: actions/checkout@v4
+        with:
+          repository: XIFtySense/XIFty
+          path: XIFty
+
+      - name: Set up Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache Rust artifacts
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: |
+            XIFty -> target
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Build core FFI library
+        run: cargo build -p xifty-ffi --manifest-path ../XIFty/Cargo.toml
+
+      - name: Run tests
+        run: python -m unittest discover -s tests
+
+      - name: Run example
+        run: python examples/basic_usage.py
