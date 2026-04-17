@@ -32,16 +32,38 @@ jobs:
         with:
           path: XIFtyPython
 
-      - name: Set up Rust
-        uses: dtolnay/rust-toolchain@stable
-
       - name: Set up Python
         uses: actions/setup-python@v6
         with:
           python-version: "3.12"
 
-      - name: Prepare core
-        run: bash scripts/prepare-core.sh
+      - name: Check out core repo
+        uses: actions/checkout@v5
+        with:
+          repository: XIFtySense/XIFty
+          path: XIFty
+
+      - name: Set up Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Read runtime version
+        id: runtime_version
+        run: echo "value=$(cat runtime-version.txt)" >> "$GITHUB_OUTPUT"
+
+      - name: Build canonical runtime artifact
+        working-directory: ${{ github.workspace }}/XIFty
+        run: |
+          mkdir -p /tmp/xifty-runtime
+          python3 tools/build-runtime-artifact.py \
+            --output /tmp/xifty-runtime/xifty-runtime-linux-x64-v${{ steps.runtime_version.outputs.value }}.tar.gz
+          python3 tools/validate-runtime-artifact.py \
+            --artifact /tmp/xifty-runtime/xifty-runtime-linux-x64-v${{ steps.runtime_version.outputs.value }}.tar.gz
+          tar -xzf /tmp/xifty-runtime/xifty-runtime-linux-x64-v${{ steps.runtime_version.outputs.value }}.tar.gz -C /tmp/xifty-runtime
+
+      - name: Stage bundled runtime
+        env:
+          XIFTY_RUNTIME_DIR: /tmp/xifty-runtime/xifty-runtime-linux-x64-v${{ steps.runtime_version.outputs.value }}
+        run: python scripts/stage-runtime.py
 
       - name: Run tests
         run: python -m unittest discover -s tests

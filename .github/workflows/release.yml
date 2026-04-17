@@ -15,25 +15,81 @@ concurrency:
 
 jobs:
   validate:
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.runs_on }}
     timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - target: linux-x64
+            runs_on: ubuntu-latest
+          - target: macos-arm64
+            runs_on: macos-14
     steps:
       - name: Check out binding repo
         uses: actions/checkout@v5
+
+      - name: Check out core repo
+        uses: actions/checkout@v5
+        with:
+          repository: XIFtySense/XIFty
+          path: XIFty
+
+      - name: Set up Rust
+        uses: dtolnay/rust-toolchain@stable
 
       - name: Set up Python
         uses: actions/setup-python@v6
         with:
           python-version: "3.12"
 
+      - name: Read runtime version
+        id: runtime_version
+        run: echo "value=$(cat runtime-version.txt)" >> "$GITHUB_OUTPUT"
+
+      - name: Build canonical runtime artifact
+        working-directory: ${{ github.workspace }}/XIFty
+        run: |
+          mkdir -p /tmp/xifty-runtime
+          python3 tools/build-runtime-artifact.py \
+            --output /tmp/xifty-runtime/xifty-runtime-${{ matrix.target }}-v${{ steps.runtime_version.outputs.value }}.tar.gz
+          python3 tools/validate-runtime-artifact.py \
+            --artifact /tmp/xifty-runtime/xifty-runtime-${{ matrix.target }}-v${{ steps.runtime_version.outputs.value }}.tar.gz
+          tar -xzf /tmp/xifty-runtime/xifty-runtime-${{ matrix.target }}-v${{ steps.runtime_version.outputs.value }}.tar.gz -C /tmp/xifty-runtime
+
+      - name: Stage bundled runtime
+        env:
+          XIFTY_RUNTIME_DIR: /tmp/xifty-runtime/xifty-runtime-${{ matrix.target }}-v${{ steps.runtime_version.outputs.value }}
+        run: python scripts/stage-runtime.py
+
       - name: Build distributions
         run: |
           python -m pip install --upgrade pip build
           python -m build
 
+      - name: Install built wheel and smoke test
+        env:
+          PYTHONPATH: ""
+        run: |
+          python -m venv .venv-release
+          . .venv-release/bin/activate
+          pip install dist/*.whl
+          python - <<'EOF'
+          from pathlib import Path
+          import xifty
+
+          root = Path.cwd()
+          fixture = root / "fixtures" / "happy.jpg"
+          output = xifty.extract(fixture, view="normalized")
+          fields = {field["field"]: field["value"]["value"] for field in output["normalized"]["fields"]}
+          assert fields["device.make"] == "XIFtyCam"
+          assert fields["device.model"] == "IterationOne"
+          print("wheel smoke passed")
+          EOF
+
       - name: Upload distributions
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
-          name: python-package-distributions
+          name: python-package-distributions-${{ matrix.target }}
           path: dist/
           if-no-files-found: error

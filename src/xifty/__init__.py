@@ -68,6 +68,32 @@ def _repo_root() -> Path:
     return Path(__file__).resolve().parents[2]
 
 
+def _package_runtime_dir() -> Path:
+    return Path(__file__).resolve().parent / "_runtime"
+
+
+def _repo_runtime_root() -> Path:
+    return Path(
+        os.environ.get("XIFTY_RUNTIME_CACHE_DIR", _repo_root() / ".xifty-runtime")
+    ).resolve()
+
+
+def _runtime_version() -> str:
+    override = os.environ.get("XIFTY_RUNTIME_VERSION")
+    if override:
+        return override
+    return (_repo_root() / "runtime-version.txt").read_text().strip()
+
+
+def _runtime_target() -> str:
+    machine = os.uname().machine.lower()
+    if sys.platform == "darwin" and machine in {"arm64", "aarch64"}:
+        return "macos-arm64"
+    if sys.platform.startswith("linux") and machine in {"x86_64", "amd64"}:
+        return "linux-x64"
+    raise RuntimeError(f"unsupported runtime host: {sys.platform} / {machine}")
+
+
 def _core_root() -> Path:
     override = os.environ.get("XIFTY_CORE_DIR")
     if override:
@@ -76,6 +102,19 @@ def _core_root() -> Path:
 
 
 def _default_library_path() -> Path:
+    bundled_runtime = _package_runtime_dir()
+    if (bundled_runtime / "manifest.json").exists():
+        return bundled_runtime / "lib" / _default_library_name()
+
+    runtime_override = os.environ.get("XIFTY_RUNTIME_DIR")
+    if runtime_override:
+        runtime_root = Path(runtime_override).resolve()
+        return runtime_root / "lib" / _default_library_name()
+
+    runtime_root = _repo_runtime_root() / f"xifty-runtime-{_runtime_target()}-v{_runtime_version()}"
+    if (runtime_root / "manifest.json").exists():
+        return runtime_root / "lib" / _default_library_name()
+
     target_dir = Path(os.environ.get("CARGO_TARGET_DIR", _core_root() / "target"))
     for profile in ("debug", "release"):
         candidate = target_dir / profile / _default_library_name()

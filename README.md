@@ -68,10 +68,10 @@ Good fits include:
 
 This repo no longer assumes a sibling `../XIFty` checkout.
 
-Prepare the core dependency into a repo-local cache:
+Prepare the canonical runtime artifact into a repo-local cache:
 
 ```bash
-bash scripts/prepare-core.sh
+bash scripts/prepare-runtime.sh
 ```
 
 Then run the binding:
@@ -82,14 +82,26 @@ PYTHONPATH=src python3 examples/basic_usage.py
 PYTHONPATH=src python3 examples/gallery_ingest.py
 ```
 
-You can still override the core location explicitly with `XIFTY_CORE_DIR`.
+Runtime resolution order is:
+
+1. bundled runtime inside the built wheel, if present
+2. `XIFTY_RUNTIME_DIR`, if explicitly set
+3. repo-local runtime cache from `scripts/prepare-runtime.sh`
+4. `XIFTY_CORE_DIR` as an explicit source-tree override for maintainers
+
+This means normal consumers should not need a source checkout of `XIFty`, while
+maintainers still retain an explicit source override path.
 
 ## Status
 
-- source-first and usable today
+- release-ready wheel target on `macos-arm64` and `linux-x64`
+- built wheels bundle the platform-native `xifty-ffi` runtime instead of
+  requiring a source checkout
 - built on the stable `xifty-ffi` ABI
-- CI validates the wrapper against the public XIFty core repo
-- packaging metadata is in place for future PyPI distribution
+- CI validates the wrapper against canonical runtime artifacts built from the
+  public XIFty core repo
+- not yet published to PyPI by default; publication should only happen once the
+  wheel/install story is treated as fully ready
 
 ## License
 
