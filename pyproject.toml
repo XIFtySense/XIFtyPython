@@ -5,13 +5,32 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "xifty-python"
 version = "0.1.0"
-description = "Python package for XIFty"
+description = "Python binding for XIFty"
 readme = "README.md"
 requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [{ name = "XIFtySense" }]
+keywords = ["metadata", "exif", "xmp", "media", "ffi"]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Intended Audience :: Developers",
+  "License :: OSI Approved :: MIT License",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3 :: Only",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Topic :: Multimedia :: Graphics",
+  "Topic :: Software Development :: Libraries :: Python Modules",
+]
+
+[project.urls]
+Homepage = "https://github.com/XIFtySense/XIFtyPython"
+Repository = "https://github.com/XIFtySense/XIFtyPython"
+Issues = "https://github.com/XIFtySense/XIFtyPython/issues"
 
 [tool.setuptools]
 package-dir = {"" = "src"}
 
 [tool.setuptools.packages.find]
 where = ["src"]
-

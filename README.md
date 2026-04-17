@@ -1,25 +1,44 @@
 # XIFtyPython
 
-Python package for XIFty.
+Python binding for [XIFty](https://github.com/XIFtySense/XIFty).
 
-This package currently builds against the XIFty core repository through the
-stable `xifty-ffi` C ABI. Local development expects a sibling checkout of the
-core repo at:
+`XIFtyPython` is a thin Python wrapper over the stable `xifty-ffi` C ABI. It is
+ready for source-based use today and is intended to become the canonical Python
+package for XIFty as distribution hardens.
 
-- `../XIFty`
+## What You Get
 
-You can override that location with `XIFTY_CORE_DIR`.
+- `version()` for the bound core version
+- `probe(path)` for fast format detection and structural inspection
+- `extract(path, view=...)` for JSON extraction across `full`, `raw`,
+  `interpreted`, `normalized`, and `report` views
+- a minimal Python surface with no hidden metadata logic layered on top of the
+  core engine
 
-## Local Development
+## Quickstart
+
+Clone the public core repo as a sibling checkout, then run the wrapper against
+it:
 
 ```bash
+git clone git@github.com:XIFtySense/XIFty.git ../XIFty
 PYTHONPATH=src python3 -m unittest discover -s tests
 PYTHONPATH=src python3 examples/basic_usage.py
 ```
 
-## Packaging
+If your core checkout lives elsewhere, set `XIFTY_CORE_DIR`:
 
-This repo includes a `pyproject.toml` so it can evolve into a normal published
-package. For now, the underlying core engine is still private, so local usage is
-expected to link against a sibling XIFty checkout.
+```bash
+XIFTY_CORE_DIR=/path/to/XIFty PYTHONPATH=src python3 examples/basic_usage.py
+```
 
+## Status
+
+- source-first and usable today
+- built on the stable `xifty-ffi` ABI
+- CI validates the wrapper against the public XIFty core repo on every push
+- packaging metadata is in place for future PyPI distribution
+
+## License
+
+MIT
