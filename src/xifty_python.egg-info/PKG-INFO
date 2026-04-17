@@ -1,3 +1,27 @@
+Metadata-Version: 2.4
+Name: xifty-python
+Version: 0.1.0
+Summary: Python binding for XIFty
+Author: XIFtySense
+License-Expression: MIT
+Project-URL: Homepage, https://github.com/XIFtySense/XIFtyPython
+Project-URL: Repository, https://github.com/XIFtySense/XIFtyPython
+Project-URL: Issues, https://github.com/XIFtySense/XIFtyPython/issues
+Keywords: metadata,exif,xmp,media,ffi
+Classifier: Development Status :: 3 - Alpha
+Classifier: Intended Audience :: Developers
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3 :: Only
+Classifier: Programming Language :: Python :: 3.10
+Classifier: Programming Language :: Python :: 3.11
+Classifier: Programming Language :: Python :: 3.12
+Classifier: Topic :: Multimedia :: Graphics
+Classifier: Topic :: Software Development :: Libraries :: Python Modules
+Requires-Python: >=3.10
+Description-Content-Type: text/markdown
+License-File: LICENSE
+Dynamic: license-file
+
 # XIFtyPython
 
 Python binding for [XIFty](https://github.com/XIFtySense/XIFty).

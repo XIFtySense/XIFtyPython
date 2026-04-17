@@ -61,3 +61,9 @@ jobs:
 
       - name: Run example
         run: python examples/basic_usage.py
+
+      - name: Install build backend
+        run: python -m pip install build
+
+      - name: Build distributions
+        run: python -m build
