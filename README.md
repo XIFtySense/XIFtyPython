@@ -1,57 +1,95 @@
-# XIFtyPython
+# XIFty for Python
 
-Python binding for [XIFty](https://github.com/XIFtySense/XIFty).
+`xifty-python` is the official Python binding repo for XIFty.
 
-`XIFtyPython` is a thin Python wrapper over the stable `xifty-ffi` C ABI. It is
-ready for source-based use today and is intended to become the canonical Python
-package for XIFty as distribution hardens.
+It gives Python applications a thin, honest bridge into the XIFty metadata
+engine so you can probe files, extract metadata views, and build ingestion
+pipelines without shelling out to a CLI.
 
-## What You Get
+## What It Does
 
-- `version()` for the bound core version
-- `probe(path)` for fast format detection and structural inspection
-- `extract(path, view=...)` for JSON extraction across `full`, `raw`,
-  `interpreted`, `normalized`, and `report` views
-- a minimal Python surface with no hidden metadata logic layered on top of the
-  core engine
+XIFty exposes four complementary metadata views:
 
-## Quickstart
+- `raw`: direct extracted metadata values
+- `interpreted`: decoded metadata with namespace meaning
+- `normalized`: stable application-facing fields
+- `report`: explicit issues and conflicts
 
-Clone the public core repo as a sibling checkout, then run the wrapper against
-it:
+This binding keeps that contract intact in Python.
+
+## Quick Example
+
+```python
+from pathlib import Path
+import xifty
+
+result = xifty.extract(Path("photo.jpg"), view="normalized")
+fields = {
+    field["field"]: field["value"]["value"]
+    for field in result["normalized"]["fields"]
+}
+
+print(result["input"]["detected_format"])
+print(fields["device.make"])
+print(fields["captured_at"])
+```
+
+## API
+
+- `xifty.version()`
+- `xifty.probe(path)`
+- `xifty.extract(path, view="full")`
+
+Supported `view` values:
+
+- `"full"`
+- `"raw"`
+- `"interpreted"`
+- `"normalized"`
+- `"report"`
+
+## Why Use It
+
+Use this binding when you want:
+
+- native Python access to XIFty
+- normalized metadata fields for application logic
+- raw and interpreted metadata for provenance-sensitive workflows
+- explicit error and report surfaces instead of silent parsing shortcuts
+
+Good fits include:
+
+- upload-time metadata extraction
+- photo library ingestion
+- asset indexing pipelines
+- back-office media processing
+
+## Local Setup
+
+This repo no longer assumes a sibling `../XIFty` checkout.
+
+Prepare the core dependency into a repo-local cache:
 
 ```bash
-git clone git@github.com:XIFtySense/XIFty.git ../XIFty
+bash scripts/prepare-core.sh
+```
+
+Then run the binding:
+
+```bash
 PYTHONPATH=src python3 -m unittest discover -s tests
 PYTHONPATH=src python3 examples/basic_usage.py
+PYTHONPATH=src python3 examples/gallery_ingest.py
 ```
 
-If your core checkout lives elsewhere, set `XIFTY_CORE_DIR`:
-
-```bash
-XIFTY_CORE_DIR=/path/to/XIFty PYTHONPATH=src python3 examples/basic_usage.py
-```
+You can still override the core location explicitly with `XIFTY_CORE_DIR`.
 
 ## Status
 
 - source-first and usable today
 - built on the stable `xifty-ffi` ABI
-- CI validates the wrapper against the public XIFty core repo on every push
+- CI validates the wrapper against the public XIFty core repo
 - packaging metadata is in place for future PyPI distribution
-
-## Release Model
-
-- `CI` runs tests, examples, and a distribution build on every push
-- `release.yml` validates release artifacts on tagged releases
-- PyPI publishing should wait until the package no longer depends on a sibling
-  XIFty core checkout
-
-## Maintainer Setup
-
-1. Use tagged releases to mark supported wrapper versions
-2. Keep validating wheels and sdists in CI
-3. Do not publish to PyPI until the package can run without a local XIFty core
-   checkout
 
 ## License
 

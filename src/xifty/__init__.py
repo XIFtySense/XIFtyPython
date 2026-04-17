@@ -72,7 +72,7 @@ def _core_root() -> Path:
     override = os.environ.get("XIFTY_CORE_DIR")
     if override:
         return Path(override).resolve()
-    return (_repo_root().parent / "XIFty").resolve()
+    return (_repo_root() / ".xifty-core").resolve()
 
 
 def _default_library_path() -> Path:
@@ -171,4 +171,3 @@ def extract(
     view: str | ViewMode = ViewMode.FULL,
 ) -> dict[str, Any]:
     return _BINDING.extract(path, view=view)
-

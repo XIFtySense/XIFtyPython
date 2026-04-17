@@ -26,18 +26,11 @@ jobs:
         working-directory: ${{ github.workspace }}/XIFtyPython
     env:
       PYTHONPATH: src
-      XIFTY_CORE_DIR: ${{ github.workspace }}/XIFty
     steps:
       - name: Check out binding repo
         uses: actions/checkout@v5
         with:
           path: XIFtyPython
-
-      - name: Check out core repo
-        uses: actions/checkout@v5
-        with:
-          repository: XIFtySense/XIFty
-          path: XIFty
 
       - name: Set up Rust
         uses: dtolnay/rust-toolchain@stable
@@ -46,21 +39,23 @@ jobs:
         uses: Swatinem/rust-cache@v2
         with:
           workspaces: |
-            XIFty -> target
+            XIFtyPython/.xifty-core -> target
 
       - name: Set up Python
         uses: actions/setup-python@v6
         with:
           python-version: "3.12"
 
-      - name: Build core FFI library
-        run: cargo build -p xifty-ffi --manifest-path ../XIFty/Cargo.toml
+      - name: Prepare core
+        run: bash scripts/prepare-core.sh
 
       - name: Run tests
         run: python -m unittest discover -s tests
 
-      - name: Run example
-        run: python examples/basic_usage.py
+      - name: Run examples
+        run: |
+          python examples/basic_usage.py
+          python examples/gallery_ingest.py
 
       - name: Install build backend
         run: python -m pip install build
