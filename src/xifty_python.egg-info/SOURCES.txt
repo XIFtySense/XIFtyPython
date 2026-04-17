@@ -1,9 +1,0 @@
-LICENSE
-README.md
-pyproject.toml
-src/xifty/__init__.py
-src/xifty_python.egg-info/PKG-INFO
-src/xifty_python.egg-info/SOURCES.txt
-src/xifty_python.egg-info/dependency_links.txt
-src/xifty_python.egg-info/top_level.txt
-tests/test_binding.py
