@@ -35,12 +35,6 @@ jobs:
       - name: Set up Rust
         uses: dtolnay/rust-toolchain@stable
 
-      - name: Cache Rust artifacts
-        uses: Swatinem/rust-cache@v2
-        with:
-          workspaces: |
-            XIFtyPython/.xifty-core -> target
-
       - name: Set up Python
         uses: actions/setup-python@v6
         with:
@@ -48,6 +42,12 @@ jobs:
 
       - name: Prepare core
         run: bash scripts/prepare-core.sh
+
+      - name: Cache Rust artifacts
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: |
+            XIFtyPython/.xifty-core -> target
 
       - name: Run tests
         run: python -m unittest discover -s tests
